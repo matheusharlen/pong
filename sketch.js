@@ -240,10 +240,10 @@ function verificaColisaoRaquete(xRaquete, yRaquete) {
     let normalizado = pontoColisaoRaquete / (alturaRaquete / 2);
 
     // Ajusta a velocidade vertical com base no ponto de colisão
-    velocidadeYBolinha += normalizado * 2; // Reduzido o multiplicador para 2
+    velocidadeYBolinha += normalizado * 1; // Reduzido o multiplicador para 2
 
     // Inverte a velocidade horizontal e aumenta levemente
-    velocidadeXBolinha *= -2; // Inverte a direção
+    velocidadeXBolinha *= -1; // Inverte a direção
 
     // Limita a velocidade vertical
     let velocidadeMaximaY = 10; // Ajuste conforme necessário
