@@ -9,13 +9,7 @@ let colidiuMinhaRaquete = false;
 let colidiuRaqueteOponente = false;
 let bolaEmMovimento = false;
 
-// Variaveis das teclas
-let upSinglePlayer = '';
-let downSinglePlayer = '';
-let upMultiPlayer = '';
-let downMultiPlayer = '';
-
-
+let velocidadeGlobal = 8;
 
 //variáveis de velocidade da bolinha
 let velocidadeXBolinha = 0;
@@ -55,6 +49,9 @@ let trilha;
 
 //Variável para escolha do modo de jogo. Singleplayer o Multiplayer
 let modoDeJogo = ''; 
+
+let jogoPausado = false;
+let mostrandoMenuPausa = false;
 
 //Função de criação do canvas e carregamento da trilha sonora e definição da taxa de quadros por segundo
 function setup() {
@@ -98,14 +95,14 @@ function mostrarMenu() {
   rect(width / 2, height / 2 + 10, 220, 40);
   fill(255);
   textSize(20);
-  text('Jogar contra a máquina', width / 2, height / 2 + 18);
+  text('Jogar contra a máquina', width / 2, height / 2 + 16);
 
   // Botão do modo multiplayer (2 jogadores)
   fill(50, 205, 50);
   rect(width / 2, height / 2 + 60, 220, 40);
   fill(255);
   textSize(20);
-  text('Multiplayer', width / 2, height / 2 + 68);
+  text('Multiplayer', width / 2, height / 2 + 67);
 }
 
 //Função que detecta os cliques dos mouses e executa a ação com base no estado do jogo
@@ -145,11 +142,46 @@ function mousePressed() {
     if (dentroDoBotao) {
       reiniciarJogo();
     }
+  } else if(estadoDoJogo === 'jogando'){
+    if (
+      mouseX > width - 40 &&
+      mouseX < width - 10 &&
+      mouseY > 10 &&
+      mouseY < 40
+    ) {
+      jogoPausado = true;
+    } else if (jogoPausado) {
+      // Verifica se o clique foi dentro do botão "Continuar"
+      let dentroDoBotaoContinuar =
+        mouseX > width / 2 - 70 &&
+        mouseX < width / 2 + 70 &&
+        mouseY > height / 2 - 10 &&
+        mouseY < height / 2 + 30;
+
+      // Verifica se o clique foi dentro do botão "Novo Jogo"
+      let dentroDoBotaoNovoJogo =
+        mouseX > width / 2 - 70 &&
+        mouseX < width / 2 + 70 &&
+        mouseY > height / 2 + 40 &&
+        mouseY < height / 2 + 80;
+
+      if (dentroDoBotaoContinuar) {
+        jogoPausado = false;
+      } else if (dentroDoBotaoNovoJogo) {
+        reiniciarJogo();
+        
+      }
+    }
   }
 }
 
 //Função principal que executa o loop do jogo
 function executarJogo() {
+  if(jogoPausado){
+    mostrarMenuPausa();
+    return;
+  }
+  background(0);
   rectMode(CORNER); // Redefine o modo de desenho dos retângulos para coordenadas x e y
   mostraBolinha();
   movimentoBolinha();
@@ -168,6 +200,38 @@ function executarJogo() {
   verificaColisaoRaquete(xOponente, yOponente); // Verifica colisão com a raquete do oponente
   placarJogo(); // Atualiza ao placar
   contadorDePontos(); // Verifica se um ponto foi marcado
+
+  fill(45);
+  rect(width - 40, 10, 30, 30);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(20);
+  text('||', width - 25, 25);
+}
+
+// Função do Menu de Pausa
+function mostrarMenuPausa(){
+  fill(0, 0, 0, 200);
+  rect(0, 0, width, height);
+  textAlign(CENTER);
+  fill(255);
+  textSize(32);
+  text('Jogo Pausado', width / 2, height / 2 - 40);
+
+  // Botão "Continuar"
+  rectMode(CENTER);
+  fill(50, 205, 50);
+  rect(width / 2, height / 2 + 10, 140, 40);
+  fill(255);
+  textSize(20);
+  text('Continuar', width / 2, height / 2 + 10);
+
+  // Botão "Novo Jogo"
+  fill(50, 205, 50);
+  rect(width / 2, height / 2 + 60, 140, 40);
+  fill(255);
+  textSize(20);
+  text('Novo Jogo', width / 2, height / 2 + 60);
 }
 
 
@@ -181,9 +245,8 @@ function movimentoBolinha(){
   // Limita a velocidade máxima
   if (bolaEmMovimento) { // Esse if é para garatir que a bolinha só se movimentar após o atraso inicial definido em reiniciar bolinha
         
-    let velocidadeMaxima = 10; // Valor que pode ser ajustado para aumentar a "dificuldade"
-    velocidadeXBolinha = constrain(velocidadeXBolinha, -velocidadeMaxima, velocidadeMaxima);
-    velocidadeYBolinha = constrain(velocidadeYBolinha, -velocidadeMaxima, velocidadeMaxima);
+    //velocidadeXBolinha = constrain(velocidadeXBolinha, -velocidadeGlobal, velocidadeGlobal);
+    //velocidadeYBolinha = constrain(velocidadeYBolinha, -velocidadeGlobal, velocidadeGlobal);
 
     xBolinha += velocidadeXBolinha; // Faz o movimento da bolinha no eixo x
     yBolinha += velocidadeYBolinha; // Faz o movimento da bolinha no eixo y
@@ -240,14 +303,14 @@ function verificaColisaoRaquete(xRaquete, yRaquete) {
     let normalizado = pontoColisaoRaquete / (alturaRaquete / 2);
 
     // Ajusta a velocidade vertical com base no ponto de colisão
-    velocidadeYBolinha += normalizado * 1; // Reduzido o multiplicador para 2
+    velocidadeYBolinha = normalizado * velocidadeGlobal; // Reduzido o multiplicador para 2
 
     // Inverte a velocidade horizontal e aumenta levemente
     velocidadeXBolinha *= -1; // Inverte a direção
 
     // Limita a velocidade vertical
-    let velocidadeMaximaY = 10; // Ajuste conforme necessário
-    velocidadeYBolinha = constrain(velocidadeYBolinha, -velocidadeMaximaY, velocidadeMaximaY);
+    //let velocidadeMaximaY = 10; // Ajuste conforme necessário
+    //velocidadeYBolinha = constrain(velocidadeYBolinha, -velocidadeMaximaY, velocidadeMaximaY);
 
     raquetada.play();
   }
@@ -307,23 +370,23 @@ function placarJogo() {
     fill(color(0, 128, 128));
     rect(150, 10, 60, 20);
     fill(255);
-    text('P1: ' + meusPontos, 180, 26);
+    text('P1: ' + meusPontos, 180, 22);
 
     fill(color(0, 255, 127));
     rect(390, 10, 60, 20);
     fill(255);
-    text('P2: ' + pontosOponente, 420, 26);
+    text('P2: ' + pontosOponente, 420, 22);
   } else {
     // Placar para Singleplayer
     fill(color(0, 128, 128));
     rect(150, 10, 40, 20);
     fill(255);
-    text(meusPontos, 170, 26);
+    text(meusPontos, 170, 22);
 
     fill(color(0, 255, 127));
     rect(450, 10, 40, 20);
     fill(255);
-    text(pontosOponente, 470, 26);
+    text(pontosOponente, 470, 22);
   }
 }
 
@@ -401,9 +464,9 @@ function reiniciarBola() {
 function definirDirecaoAleatoria() {
   let angulo = random(-PI / 4, PI / 4); // Ângulo de lançamento
   let direcao = random([1, -1]);
-  let velocidadeInicial = 8; // Velocidade que a bolinha é lançada até tocar em alguma raquete
-  velocidadeXBolinha = direcao * velocidadeInicial * cos(angulo);
-  velocidadeYBolinha = velocidadeInicial * sin(angulo);
+  //let velocidadeInicial = 8; // Velocidade que a bolinha é lançada até tocar em alguma raquete
+  velocidadeXBolinha = direcao * velocidadeGlobal * cos(angulo);
+  velocidadeYBolinha = velocidadeGlobal * sin(angulo);
 }
 
 // Funçao que reinicia o jogo para o estado inicial
@@ -418,4 +481,7 @@ function reiniciarJogo() {
   bolaEmMovimento = false;
   estadoDoJogo = 'menu'; // Retona ao menu inicial
   modoDeJogo = ''; // Limpa o modo de jogo
+  jogoPausado = false;
+  mostrandoMenuPausa = false;
+  
 }
